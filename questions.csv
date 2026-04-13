@@ -1,0 +1,5 @@
+type,question,answer,option1,option2,option3,option4,image
+MC,What is 2+2?,4,1,2,3,4
+FR,Name a color,Blue,,,,,
+IMG,What is this?,Cat,,,,,cat.pngMC,How many apples are there?,4,2,6,4,9
+MC,How many apples are there?,4,2,6,9,4
