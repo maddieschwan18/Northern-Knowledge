@@ -2,10 +2,10 @@ type,question,answer,option1,option2,option3,option4,image,answer_image
 MC,Which of the following elements of electrical engineering cannot be analyzed using Ohm’s law?,Transistors,Capacitors,Inductors,Transistors,Resistance,
 FR,How many cycles will an AC signal make in 2 seconds if its frequency is 100 Hz?,200,,,,,
 MC,Which of the following is correct about the power consumed by R1 and R2 connected in series if R1 > R2?,R1 will consume more power,R1 will consume more power,R2 will consume more power,R1 and R2 will consume the same power,The relationship cannot be established,
-IMG,Find the total current and total resistance for the following circuit.,Total Current: 14.4 mA | Total Resistance: 625 Ohm,,,,,circuit.png
+IMG,Find the total current and total resistance for the following circuit.,Total Current: 14.4 mA | Total Resistance: 625 Ohm,,,,,images/circuit.png
 FR,How many electrons will constitute 2 Coulombs of electric charge?,12.48e18,,,,,
 MC,The sum of the voltages over any closed loop is equal to ________,0V,0V,Infinity,1V,2V,
 MC,KCL is applied at _________,Node,Loop,Node,Both loop and node,Neither loop nor node,
 FR,A 250V bulb passes a current of 0.3A. Calculate the power in the lamp.,75W,,,,,
 MC,Which of the following is not an expression of power?,P=I/R,P=VI,P=I^2R,P=V^2/R,P=I/R,
-IMG,Remove 2 sticks to leave only 4 squares.,See answer image,,,,,sticks_question.png,sticks_answer.png
+IMG,Remove 2 sticks to leave only 4 squares.,See answer image,,,,,images/sticks_question.png, images/sticks_answer.png
