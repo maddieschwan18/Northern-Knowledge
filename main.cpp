@@ -1,7 +1,7 @@
-#include <SDL2/SDL.h>
+#include <SDL2/SDL.h>          // SDL2 main library
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
-#include "score_system.h"
+#include "score_system.h"     // Score function
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -11,21 +11,24 @@
 using namespace std;
 
 // ------------------ Structures ------------------
+// Individual question format loaded from CSV file
 struct Question {
     string type;
     string q;
     string a;
     vector<string> options;
     string image;
+    string answerImage;
 };
 
 // ------------------ Game State ------------------
 enum GameMode { EASY, MEDIUM, HARD, FREE_PLAY };
+// Game Screens 
 enum GameState { WELCOME_SCREEN, INSTRUCTIONS_SCREEN, MODE_SELECT_SCREEN, GAME_RUNNING, SHOW_ANSWER_SCREEN, LEADERBOARD_SCREEN, FINAL_SCREEN};
 
-GameState gameState = WELCOME_SCREEN;
+GameState gameState = WELCOME_SCREEN; // Begins on Welcome Screen
 GameMode currentMode = EASY;
-int buzzedTeam = -1;
+int buzzedTeam = -1;    // Tracks which team buzzed (-1  = none)
 // ------------------ Globals ------------------
 vector<Team> teams = {
     {"Team 1", 0},
@@ -34,6 +37,7 @@ vector<Team> teams = {
     {"Team 4", 0}
 };
 
+// Team colors for UI
 vector<SDL_Color> teamColors = {
     {0, 120, 255, 255},   // Blue
     {255, 105, 180, 255}, // Pink
@@ -41,6 +45,7 @@ vector<SDL_Color> teamColors = {
     {0, 200, 0, 255}      // Green
 };
 
+// State flags and screen transitions
 bool stateChanged = false;
 Uint32 questionStartTime = 0;
 int timeLimit = 300000;
@@ -59,26 +64,43 @@ vector<Question> loadQuestions(const string& filename) {
     string line, word;
 
     while (getline(fin, line)) {
+        if (line.empty()) continue;
+
         stringstream s(line);
         vector<string> row;
 
-        while (getline(s, word, ',')) row.push_back(word);
-
-        if (row.size() >= 3) {
-            Question q;
-            q.type = row[0];
-            q.q = row[1];
-            q.a = row[2];
-
-            for (int i = 3; i < row.size(); i++) {
-                if (!row[i].empty())
-                    q.options.push_back(row[i]);
-            }
-            if (row.size() >= 8) q.image = row[7];
-
-            questions.push_back(q);
+        while (getline(s, word, ',')) {
+            row.push_back(word);
         }
+
+        // Skip header row
+        if (!row.empty() && row[0] == "type") continue;
+
+        // Ensure at least 9 columns
+        while (row.size() < 9) {
+            row.push_back("");
+        }
+
+        Question q;
+        q.type = row[0];
+        q.q = row[1];
+        q.a = row[2];
+
+        // Only MC questions should load options
+        if (q.type == "MC") {
+            for (int i = 3; i <= 6; i++) {
+                if (!row[i].empty()) {
+                    q.options.push_back(row[i]);
+                }
+            }
+        }
+
+        q.image = row[7];
+        q.answerImage = row[8];
+
+        questions.push_back(q);
     }
+
     return questions;
 }
 
@@ -167,6 +189,27 @@ TTF_Font* getFittingFont(string text, int maxWidth, int maxHeight) {
         size--;
     }
     return TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 10);
+}
+
+SDL_Rect getCenteredImageRect(SDL_Texture* tex, int maxW, int maxH, int centerX, int centerY) {
+    int imgW, imgH;
+    SDL_QueryTexture(tex, nullptr, nullptr, &imgW, &imgH);
+
+    double scaleX = (double)maxW / imgW;
+    double scaleY = (double)maxH / imgH;
+    double scale = min(scaleX, scaleY);
+
+    int drawW = (int)(imgW * scale);
+    int drawH = (int)(imgH * scale);
+
+    SDL_Rect rect = {
+        centerX - drawW / 2,
+        centerY - drawH / 2,
+        drawW,
+        drawH
+    };
+
+    return rect;
 }
 
 // ------------------ Main ------------------
@@ -511,9 +554,29 @@ int main() {
             SDL_Texture* answerTex = renderTextWrapped(q.a, font, black, renderer, (int)(winW * 0.6));
             SDL_QueryTexture(answerTex, nullptr, nullptr, &tw, &th);
 
-            SDL_Rect answerRect = { (winW - tw)/2, (int)(winH * 0.4), tw, th };
+            SDL_Rect answerRect = { (winW - tw)/2, (int)(winH * 0.35), tw, th };
             SDL_RenderCopy(renderer, answerTex, nullptr, &answerRect);
             SDL_DestroyTexture(answerTex);
+
+            // Answer image, if present
+            if (!q.answerImage.empty()) {
+                SDL_Texture* ansImg = IMG_LoadTexture(renderer, q.answerImage.c_str());
+                if (ansImg) {
+                    SDL_Rect imgRect = getCenteredImageRect(
+                        ansImg,
+                        (int)(winW * 0.5),    // max width
+                        (int)(winH * 0.3),    // max height
+                        winW / 2,             // centered horizontally
+                        (int)(winH * 0.63)    // below answer text
+                    );
+
+                    SDL_RenderCopy(renderer, ansImg, nullptr, &imgRect);
+                    SDL_DestroyTexture(ansImg);
+                } else {
+                    cout << "Failed to load answer image: " << q.answerImage << endl;
+                    cout << "IMG_LoadTexture Error: " << IMG_GetError() << endl;
+                }
+            }
 
             // Continue instruction
             SDL_Texture* cont = renderText("Press any key to continue", font, black, renderer);
@@ -745,13 +808,23 @@ int main() {
         cout << "Loaded question: " << q.q << endl;
         cout << "Options count: " << q.options.size() << endl;
 
-        // Image
+        // Question image
         if (!q.image.empty()) {
             SDL_Texture* img = IMG_LoadTexture(renderer, q.image.c_str());
             if (img) {
-                SDL_Rect r = { (int)(winW * 0.75), (int)(winH * 0.35), (int)(winW * 0.2), (int)(winH * 0.3) };
+                SDL_Rect r = getCenteredImageRect(
+                    img,
+                    (int)(winW * 0.45),   // max width
+                    (int)(winH * 0.35),   // max height
+                    winW / 2,             // centered horizontally
+                    (int)(winH * 0.72)    // lower part of question screen
+                );
+
                 SDL_RenderCopy(renderer, img, nullptr, &r);
                 SDL_DestroyTexture(img);
+            } else {
+                cout << "Failed to load question image: " << q.image << endl;
+                cout << "IMG_LoadTexture Error: " << IMG_GetError() << endl;
             }
         }
 
@@ -785,3 +858,4 @@ int main() {
     SDL_Quit();
     return 0;
 }
+
