@@ -1,5 +1,5 @@
 type,question,answer,option1,option2,option3,option4,image,answer_image
-MC,Which of the following elements of electrical engineering cannot be analyzed using Ohm’s law?,Transistors,Capacitors,Inductors,Transistors,Resistance,
+MC,Which of the following elements of electrical engineering cannot be analyzed using Ohm's law?,Transistors,Capacitors,Inductors,Transistors,Resistance,
 FR,How many cycles will an AC signal make in 2 seconds if its frequency is 100 Hz?,200,,,,,
 MC,Which of the following is correct about the power consumed by R1 and R2 connected in series if R1 > R2?,R1 will consume more power,R1 will consume more power,R2 will consume more power,R1 and R2 will consume the same power,The relationship cannot be established,
 IMG,Find the total current and total resistance for the following circuit.,Total Current: 14.4 mA | Total Resistance: 625 Ohm,,,,,images/circuit.png
